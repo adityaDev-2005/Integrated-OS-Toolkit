@@ -1,0 +1,4 @@
+algorithm,hits,faults,frame_count,reference_count
+FIFO,3,9,3,12
+LRU,2,10,3,12
+LFU,2,10,3,12

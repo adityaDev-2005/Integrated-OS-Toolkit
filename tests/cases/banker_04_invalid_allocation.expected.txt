@@ -1,0 +1,3 @@
+[banker] invalid state: Allocation P1 R1 = 3 exceeds Maximum P1 R1 = 2
+[banker] state: REJECTED
+[banker] note: an allocation cannot exceed the maximum claim of the same process

@@ -1,0 +1,4 @@
+[pc] configuration: buffer=1 items=1 producers=8 consumers=8
+[pc] integrity: produced=1 consumed=1 duplicates=0 missing=0 invalid=0 buffer_empty=yes
+[pc] bounded buffer: peak occupancy 1 of 1 slots
+[pc] bounded buffer: PASS

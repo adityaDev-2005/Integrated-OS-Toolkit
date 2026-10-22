@@ -1,0 +1,44 @@
+========== FILE ALLOCATION ==========
+Simulated disk: 1 blocks of 8 bytes (8 bytes total), all blocks initially free
+Operations: 7
+Simulation only: no real filesystem is read or modified.
+---------- Contiguous allocation ----------
+[op 1] allocate file 1 (4 bytes): success, data blocks [0]
+[op 2] retrieve file 1: size 4 bytes, data blocks [0]
+[op 3] allocate file 2 (4 bytes): FAILED - no contiguous run of 1 blocks (0 free)
+[op 4] retrieve file 2: FAILED - file not allocated
+[op 5] delete file 1: freed data blocks [0]
+[op 6] allocate file 3 (4 bytes): success, data blocks [0]
+[op 7] retrieve file 3: size 4 bytes, data blocks [0]
+Block usage: used 1/1; used blocks: [0]; free blocks: []
+Summary: files active 1; allocations 2 ok / 1 failed; deletions 1 ok / 0 failed; retrievals 2 ok / 1 failed
+Space: requested 4 bytes, allocated 8 bytes, wasted 4 bytes; metadata blocks 0
+---------- Linked allocation ----------
+[op 1] allocate file 1 (4 bytes): success, data blocks [0]
+[op 2] retrieve file 1: size 4 bytes, data blocks [0]
+[op 3] allocate file 2 (4 bytes): FAILED - not enough free blocks (needs 1, 0 free)
+[op 4] retrieve file 2: FAILED - file not allocated
+[op 5] delete file 1: freed data blocks [0]
+[op 6] allocate file 3 (4 bytes): success, data blocks [0]
+[op 7] retrieve file 3: size 4 bytes, data blocks [0]
+Block usage: used 1/1; used blocks: [0]; free blocks: []
+Summary: files active 1; allocations 2 ok / 1 failed; deletions 1 ok / 0 failed; retrievals 2 ok / 1 failed
+Space: requested 4 bytes, allocated 8 bytes, wasted 4 bytes; metadata blocks 0
+---------- Indexed allocation ----------
+[op 1] allocate file 1 (4 bytes): FAILED - not enough free blocks (needs 2, 1 free)
+[op 2] retrieve file 1: FAILED - file not allocated
+[op 3] allocate file 2 (4 bytes): FAILED - not enough free blocks (needs 2, 1 free)
+[op 4] retrieve file 2: FAILED - file not allocated
+[op 5] delete file 1: FAILED - file not allocated
+[op 6] allocate file 3 (4 bytes): FAILED - not enough free blocks (needs 2, 1 free)
+[op 7] retrieve file 3: FAILED - file not allocated
+Block usage: used 0/1; used blocks: []; free blocks: [0]
+Summary: files active 0; allocations 0 ok / 3 failed; deletions 0 ok / 1 failed; retrievals 0 ok / 3 failed
+Space: requested 0 bytes, allocated 0 bytes, wasted 0 bytes; metadata blocks 0
+Notes:
+  File size is in bytes; blocks needed = ceil(size / usable bytes per block).
+  Contiguous and indexed data blocks hold 8 bytes each.
+  Linked blocks reserve 4 bytes for the next pointer, so 4 bytes per block are usable.
+  Indexed files use one index block holding 2 pointers (4 bytes each); a file needing more data blocks is rejected.
+  Wasted space = allocated block bytes - requested bytes, so it includes last-block slack,
+  link-pointer slots and index blocks.

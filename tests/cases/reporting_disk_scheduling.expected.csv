@@ -1,0 +1,4 @@
+algorithm,total_head_movement,request_count,initial_head,min_cylinder,max_cylinder
+FCFS,640,8,53,0,199
+SSTF,236,8,53,0,199
+SCAN,331,8,53,0,199

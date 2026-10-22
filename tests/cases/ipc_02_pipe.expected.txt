@@ -1,0 +1,12 @@
+[pipe] pipe created (read end and write end)
+[pipe] child: closed unused read end
+[pipe] child: wrote 25 bytes
+[pipe] child: closed write end (parent will see EOF)
+[pipe] parent: closed unused write end
+[pipe] parent: read 25 bytes
+[pipe] parent: EOF observed: yes
+[pipe] parent: data = "hello from child via pipe"
+[pipe] parent: data matches the message sent by the child
+[pipe] cleanup: both pipe ends closed
+[pipe] waitpid: child exited with status 0
+[pipe] pipe demo: PASS

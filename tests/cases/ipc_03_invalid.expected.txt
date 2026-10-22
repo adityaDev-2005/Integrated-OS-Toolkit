@@ -1,0 +1,7 @@
+Invalid input. Enter an integer from 1 to 3.
+Invalid input. Enter an integer from 1 to 100.
+Invalid input. Enter an integer from 1 to 10000.
+Invalid input. Enter an integer from 1 to 8.
+[pc] configuration: buffer=5 items=20 producers=2 consumers=2
+[pc] integrity: produced=20 consumed=20 duplicates=0 missing=0 invalid=0 buffer_empty=yes
+[pc] bounded buffer: PASS

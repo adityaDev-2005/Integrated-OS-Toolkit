@@ -1,0 +1,31 @@
+========== POSIX PROCESS AND FILE DEMO ==========
+These results come from real Linux system calls; none are simulated.
+[process] parent: pid=
+[process] waitpid child: pid=
+[process] waitpid: reaped child
+[process] wait child: pid=
+[process] wait: reaped child
+[exec] child before exec: pid=
+[exec] execlp: child image replaced successfully
+[exec] waitpid: successful exec child exited with status 0
+[exec] child before failed exec: pid=
+[exec] expected execl failure:
+[exec] failed exec: child exited with status 127 (expected)
+[file] temporary file created: /tmp/os_toolkit_posix_
+[file] open: O_RDWR descriptor acquired
+[file] fcntl F_GETFL: O_APPEND not set
+[file] fcntl F_SETFL: O_APPEND set
+[file] write: 5 bytes ("hello")
+[file] write: 6 bytes (" world")
+[file] lseek: offset 0
+[file] read back: "hello world" (11 bytes)
+[file] lseek: offset 6
+[file] lseek+read from offset 6: "world" (5 bytes)
+[file] stat: size=11 bytes, mode=600
+[file] close: descriptor released
+[file] cleanup: temporary file unlinked
+[directory] opendir: /tmp
+[directory] readdir:
+[directory] readdir: listed
+[directory] closedir: directory stream closed
+POSIX demonstration: all checks passed

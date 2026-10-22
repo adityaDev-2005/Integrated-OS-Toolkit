@@ -1,0 +1,18 @@
+Invalid choice. Select 1 to 10.
+Invalid input. Enter an integer from 1 to 128.
+Invalid input. Enter an integer from 8 to 4096.
+Invalid input. Enter an integer from 1 to 64.
+Invalid input. Enter an integer from 1 to 3.
+Invalid input. Enter an integer from 1 to 32.
+Invalid input. Enter an integer from 1 to 1000000.
+File allocation simulation: all data stays in memory; no real filesystem is read or modified.
+Simulated disk: 4 blocks of 64 bytes (256 bytes total), all blocks initially free
+Operations: 3
+Simulation only: no real filesystem is read or modified.
+[op 2] retrieve file 1: size 64 bytes, data blocks [0]
+[op 2] retrieve file 1: size 64 bytes, data blocks [0 1]
+[op 2] retrieve file 1: size 64 bytes, index block 0, data blocks [1]
+[op 3] delete file 1: freed data blocks [0]
+[op 3] delete file 1: freed data blocks [0 1]
+[op 3] delete file 1: freed index block 0, data blocks [1]
+Block usage: used 0/4; used blocks: []; free blocks: [0 1 2 3]

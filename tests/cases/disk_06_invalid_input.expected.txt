@@ -1,0 +1,14 @@
+Invalid input. Enter an integer from 1 to 9999.
+Invalid input. Enter an integer from 0 to 99.
+Invalid input. Enter an integer from 1 to 200.
+========== DISK SCHEDULING ==========
+Cylinder range: 0-99
+Initial head position: 50
+Requests: 10 90
+Head path: 50 -> 10 -> 90
+Total head movement: 120 cylinders
+Head path: 50 -> 90 -> 99 -> 10
+Total head movement: 138 cylinders
+FCFS    120 cylinders
+SSTF    120 cylinders
+SCAN    138 cylinders

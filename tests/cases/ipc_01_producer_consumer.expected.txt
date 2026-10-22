@@ -1,0 +1,5 @@
+[pc] configuration: buffer=5 items=20 producers=2 consumers=2
+[pc] semaphores: empty=5 full=0
+[pc] integrity: produced=20 consumed=20 duplicates=0 missing=0 invalid=0 buffer_empty=yes
+[pc] cleanup: threads joined, mutexes and semaphores destroyed
+[pc] bounded buffer: PASS

@@ -1,0 +1,25 @@
+========== DISK SCHEDULING ==========
+Cylinder range: 0-199
+Initial head position: 53
+Requests: 98 183 37 122 14 124 65 67
+---------- FCFS ----------
+Head path: 53 -> 98 -> 183 -> 37 -> 122 -> 14 -> 124 -> 65 -> 67
+Total head movement: 640 cylinders
+---------- SSTF ----------
+Head path: 53 -> 65 -> 67 -> 37 -> 14 -> 98 -> 122 -> 124 -> 183
+Total head movement: 236 cylinders
+---------- SCAN ----------
+Initial direction: increasing (toward cylinder 199)
+Head path: 53 -> 65 -> 67 -> 98 -> 122 -> 124 -> 183 -> 199 -> 37 -> 14
+Total head movement: 331 cylinders
+Comparison:
+Policy  Total head movement
+------  -------------------
+FCFS    640 cylinders
+SSTF    236 cylinders
+SCAN    331 cylinders
+Notes:
+  SSTF ties go to the lower cylinder number, then to the earlier
+  request in the queue.
+  SCAN always reaches cylinder 199 before reversing, so the run to
+  the boundary is included in its total; this is SCAN, not LOOK.

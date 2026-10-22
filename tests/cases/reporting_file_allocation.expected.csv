@@ -1,0 +1,4 @@
+algorithm,used_blocks,free_blocks,active_files,allocations_ok,allocations_failed,deletions_ok,deletions_failed,retrievals_ok,retrievals_failed,requested_bytes,allocated_bytes,wasted_bytes,metadata_blocks,block_count,block_size,operation_count
+Contiguous,5,5,2,4,0,2,0,4,0,290,320,30,0,10,64,10
+Linked,6,4,2,4,0,2,0,4,0,290,384,94,0,10,64,10
+Indexed,7,3,2,4,0,2,0,4,0,290,448,158,2,10,64,10

@@ -1,0 +1,35 @@
+========== FILE ALLOCATION ==========
+Simulated disk: 4 blocks of 64 bytes (256 bytes total), all blocks initially free
+Operations: 4
+Simulation only: no real filesystem is read or modified.
+---------- Contiguous allocation ----------
+[op 1] allocate file 1 (250 bytes): success, data blocks [0 1 2 3]
+[op 2] retrieve file 1: size 250 bytes, data blocks [0 1 2 3]
+[op 3] allocate file 2 (64 bytes): FAILED - no contiguous run of 1 blocks (0 free)
+[op 4] retrieve file 2: FAILED - file not allocated
+Block usage: used 4/4; used blocks: [0 1 2 3]; free blocks: []
+Summary: files active 1; allocations 1 ok / 1 failed; deletions 0 ok / 0 failed; retrievals 1 ok / 1 failed
+Space: requested 250 bytes, allocated 256 bytes, wasted 6 bytes; metadata blocks 0
+---------- Linked allocation ----------
+[op 1] allocate file 1 (250 bytes): FAILED - not enough free blocks (needs 5, 4 free)
+[op 2] retrieve file 1: FAILED - file not allocated
+[op 3] allocate file 2 (64 bytes): success, data blocks [0 1]
+[op 4] retrieve file 2: size 64 bytes, data blocks [0 1]
+Block usage: used 2/4; used blocks: [0 1]; free blocks: [2 3]
+Summary: files active 1; allocations 1 ok / 1 failed; deletions 0 ok / 0 failed; retrievals 1 ok / 1 failed
+Space: requested 64 bytes, allocated 128 bytes, wasted 64 bytes; metadata blocks 0
+---------- Indexed allocation ----------
+[op 1] allocate file 1 (250 bytes): FAILED - not enough free blocks (needs 5, 4 free)
+[op 2] retrieve file 1: FAILED - file not allocated
+[op 3] allocate file 2 (64 bytes): success, index block 0, data blocks [1]
+[op 4] retrieve file 2: size 64 bytes, index block 0, data blocks [1]
+Block usage: used 2/4; used blocks: [0 1]; free blocks: [2 3]
+Summary: files active 1; allocations 1 ok / 1 failed; deletions 0 ok / 0 failed; retrievals 1 ok / 1 failed
+Space: requested 64 bytes, allocated 128 bytes, wasted 64 bytes; metadata blocks 1
+Notes:
+  File size is in bytes; blocks needed = ceil(size / usable bytes per block).
+  Contiguous and indexed data blocks hold 64 bytes each.
+  Linked blocks reserve 4 bytes for the next pointer, so 60 bytes per block are usable.
+  Indexed files use one index block holding 16 pointers (4 bytes each); a file needing more data blocks is rejected.
+  Wasted space = allocated block bytes - requested bytes, so it includes last-block slack,
+  link-pointer slots and index blocks.

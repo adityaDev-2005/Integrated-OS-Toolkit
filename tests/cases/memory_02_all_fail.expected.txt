@@ -1,0 +1,12 @@
+========== MEMORY ALLOCATION ==========
+Blocks: 2   Requests: 2
+Request  Size     First Fit      Best Fit       Worst Fit
+1        100      failed         failed         failed
+2        200      failed         failed         failed
+Block  Size     First Fit free  Best Fit free   Worst Fit free
+1      50       50              50              50
+2      80       80              80              80
+Policy      Allocated  Failed  Internal frag   External frag (largest free block)
+First Fit   0          2       0               80
+Best Fit    0          2       0               80
+Worst Fit   0          2       0               80

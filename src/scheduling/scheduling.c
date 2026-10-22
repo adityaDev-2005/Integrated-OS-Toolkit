@@ -1,10 +1,9 @@
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+
+#include "benchmark.h"
+#include "common.h"
 #include "scheduling.h"
 
 #define MAX_SEGMENTS 100000
@@ -25,53 +24,26 @@ typedef struct {
 static Segment timelines[4][MAX_SEGMENTS];
 static int timeline_counts[4];
 
-static int read_integer(const char *prompt, int min, int max, int *value)
-{
-    char buffer[128];
-    char *end;
-    long number;
-
-    for (;;) {
-        printf("%s", prompt);
-        fflush(stdout);
-
-        if (fgets(buffer, sizeof(buffer), stdin) == NULL)
-            return 0;
-
-        errno = 0;
-        number = strtol(buffer, &end, 10);
-
-        if (end == buffer || errno == ERANGE) {
-            printf("Invalid input. Enter an integer from %d to %d.\n",
-                   min, max);
-            continue;
-        }
-
-        while (*end == ' ' || *end == '\t' ||
-               *end == '\n' || *end == '\r')
-            end++;
-
-        if (*end != '\0' || number < min || number > max) {
-            printf("Invalid input. Enter an integer from %d to %d.\n",
-                   min, max);
-            continue;
-        }
-
-        *value = (int)number;
-        return 1;
-    }
-}
-
-static int read_workload(Process p[])
+static int read_workload(Process p[], int *larger_priority_first)
 {
     int count;
+    int ordering;
 
     if (!read_integer("\nNumber of processes (1-100): ",
                       1, MAX_PROCESSES, &count))
         return 0;
 
+    printf("\nPriority ordering:\n");
+    printf("  1. Smaller numbers mean higher priority\n");
+    printf("  2. Larger numbers mean higher priority\n");
+    if (!read_integer("Select priority ordering (1-2): ", 1, 2, &ordering))
+        return 0;
+
+    *larger_priority_first = (ordering == 2);
+
     printf("\nEnter arrival time, burst time, and priority for each process.\n");
-    printf("Smaller priority numbers mean higher priority.\n");
+    printf("%s priority numbers mean higher priority.\n",
+           *larger_priority_first ? "Larger" : "Smaller");
 
     for (int i = 0; i < count; i++) {
         char prompt[100];
@@ -88,8 +60,7 @@ static int read_workload(Process p[])
         if (!read_integer(prompt, 1, 1000, &p[i].burst_time))
             return 0;
 
-        snprintf(prompt, sizeof(prompt), "P%d priority (1 = highest): ",
-                 i + 1);
+        snprintf(prompt, sizeof(prompt), "P%d priority: ", i + 1);
         if (!read_integer(prompt, 1, 1000000, &p[i].priority))
             return 0;
 
@@ -111,9 +82,6 @@ static int read_workload(Process p[])
     }
 
     return count;
-
-
-    // return count;
 }
 
 static void add_segment(int algorithm, int pid, int start, int end)
@@ -160,7 +128,8 @@ static void run_fcfs(Process p[], int count)
 
 /* Select a ready process by shortest burst or highest priority. */
 static int select_ready(Process p[], int count, int done[],
-                        int time, int by_priority)
+                        int time, int by_priority,
+                        int larger_priority_first)
 {
     int best = -1;
 
@@ -175,7 +144,9 @@ static int select_ready(Process p[], int count, int done[],
 
         int better;
         if (by_priority) {
-            better = p[i].priority < p[best].priority;
+            better = larger_priority_first
+                         ? p[i].priority > p[best].priority
+                         : p[i].priority < p[best].priority;
         } else {
             better = p[i].burst_time < p[best].burst_time;
         }
@@ -196,7 +167,8 @@ static int select_ready(Process p[], int count, int done[],
 
 /* SJF and Priority are both non-preemptive. */
 static void run_nonpreemptive(Process p[], int count,
-                              int algorithm, int by_priority)
+                              int algorithm, int by_priority,
+                              int larger_priority_first)
 {
     int done[MAX_PROCESSES] = {0};
     int time = 0;
@@ -206,7 +178,8 @@ static void run_nonpreemptive(Process p[], int count,
     reset_results(p, count);
 
     while (completed < count) {
-        int selected = select_ready(p, count, done, time, by_priority);
+        int selected = select_ready(p, count, done, time, by_priority,
+                                    larger_priority_first);
 
         if (selected == -1) {
             int next_arrival = -1;
@@ -308,12 +281,18 @@ static int run_round_robin(Process p[], int count, int quantum)
     return 1;
 }
 
-static Metrics print_results(const char *name, Process p[], int count,
-                             int algorithm)
+static Metrics print_results(Process p[], int count, int algorithm)
 {
+    /* Taking only an index avoids a false GCC 11 -Wstringop-overflow. */
+    static const char *const names[] = {
+        "FCFS",
+        "SJF (NON-PREEMPTIVE)",
+        "PRIORITY (NON-PREEMPTIVE)",
+        "ROUND ROBIN"
+    };
     double waiting = 0, turnaround = 0, response = 0;
 
-    printf("\n========== %s ==========\n", name);
+    printf("\n========== %s ==========\n", names[algorithm]);
     printf("Timeline: ");
 
     for (int i = 0; i < timeline_counts[algorithm]; i++) {
@@ -349,73 +328,51 @@ static Metrics print_results(const char *name, Process p[], int count,
     return m;
 }
 
-static int save_csv(Metrics results[], int quantum, int count)
+static int save_csv(const Metrics results[], int quantum, int count)
 {
-    if (mkdir("data", 0777) != 0 && errno != EEXIST) {
-        perror("Creating data directory");
+    static const char *const fields[] = {
+        "algorithm", "avg_waiting_time", "avg_turnaround_time",
+        "avg_response_time", "quantum", "process_count"
+    };
+    static const char *const names[] = {
+        "FCFS", "SJF", "Priority", "Round Robin"
+    };
+    BenchmarkCsv csv;
+
+    if (!benchmark_csv_open(&csv, "cpu_scheduling.csv",
+                            "CPU scheduling CSV")) {
+        benchmark_report_csv_failure();
         return 0;
     }
 
-    if (mkdir("data/results", 0777) != 0 && errno != EEXIST) {
-        perror("Creating results directory");
-        return 0;
-    }
-
-    FILE *file = fopen("data/results/cpu_scheduling.csv", "w");
-    if (file == NULL) {
-        perror("Opening CPU scheduling CSV");
-        return 0;
-    }
-
-    fprintf(file, "algorithm,avg_waiting_time,avg_turnaround_time,"
-                  "avg_response_time,quantum,process_count\n");
-
-    const char *names[] = {"FCFS", "SJF", "Priority", "Round Robin"};
+    benchmark_csv_header(&csv, fields, sizeof(fields) / sizeof(fields[0]));
 
     for (int i = 0; i < 4; i++) {
-        fprintf(file, "%s,%.2f,%.2f,%.2f,%d,%d\n",
-                names[i], results[i].waiting, results[i].turnaround,
-                results[i].response, quantum, count);
+        benchmark_csv_row_begin(&csv);
+        benchmark_csv_text(&csv, names[i]);
+        benchmark_csv_double(&csv, results[i].waiting);
+        benchmark_csv_double(&csv, results[i].turnaround);
+        benchmark_csv_double(&csv, results[i].response);
+        benchmark_csv_int(&csv, quantum);
+        benchmark_csv_int(&csv, count);
+        benchmark_csv_row_end(&csv);
     }
 
-    fclose(file);
-    printf("\nComparison data saved to data/results/cpu_scheduling.csv\n");
+    if (!benchmark_csv_close(&csv)) {
+        benchmark_report_csv_failure();
+        return 0;
+    }
+
+    benchmark_report_csv_saved(benchmark_csv_relative(&csv));
     return 1;
 }
 
-
 static void generate_plot_automatically(void)
 {
-    printf("\nGenerating CPU scheduling comparison graph...\n");
-
-    /* Prefer the project's virtual environment. */
-    int status = system(
-        ".venv/bin/python scripts/plot_results.py"
-    );
-
-    /* Fall back to the system Python if needed. */
-    if (status != 0) {
-        printf("Trying system Python...\n");
-        status = system("python3 scripts/plot_results.py");
-    }
-
-    if (status != 0) {
-        printf("Could not generate the graph.\n");
-        printf("Check that Matplotlib and the plotting script are installed.\n");
-        return;
-    }
-
-    printf("Graph saved to data/results/cpu_scheduling_comparison.png\n");
-
-    /* Open the generated image in the Linux desktop. */
-    status = system(
-        "xdg-open data/results/cpu_scheduling_comparison.png "
-        ">/dev/null 2>&1 &"
-    );
-
-    if (status != 0) {
-        printf("The graph was saved, but could not be opened automatically.\n");
-    }
+    benchmark_generate_plot(
+        "cpu_scheduling",
+        "data/results/cpu_scheduling_comparison.png",
+        "CPU scheduling comparison graph");
 }
 
 
@@ -426,8 +383,9 @@ void run_cpu_analyzer(void)
     Process work[4][MAX_PROCESSES];
     Metrics metrics[4];
     int quantum;
+    int larger_priority_first = 0;
 
-    int count = read_workload(original);
+    int count = read_workload(original, &larger_priority_first);
     if (count == 0)
         return;
 
@@ -441,17 +399,16 @@ void run_cpu_analyzer(void)
     printf("\nRunning all four algorithms on the same workload...\n");
 
     run_fcfs(work[0], count);
-    run_nonpreemptive(work[1], count, 1, 0);
-    run_nonpreemptive(work[2], count, 2, 1);
+    run_nonpreemptive(work[1], count, 1, 0, 0);
+    run_nonpreemptive(work[2], count, 2, 1, larger_priority_first);
 
     if (!run_round_robin(work[3], count, quantum))
         return;
 
-    metrics[0] = print_results("FCFS", work[0], count, 0);
-    metrics[1] = print_results("SJF (NON-PREEMPTIVE)", work[1], count, 1);
-    metrics[2] = print_results("PRIORITY (NON-PREEMPTIVE)",
-                               work[2], count, 2);
-    metrics[3] = print_results("ROUND ROBIN", work[3], count, 3);
+    metrics[0] = print_results(work[0], count, 0);
+    metrics[1] = print_results(work[1], count, 1);
+    metrics[2] = print_results(work[2], count, 2);
+    metrics[3] = print_results(work[3], count, 3);
 
     printf("\n========== ALGORITHM COMPARISON ==========\n");
     printf("%-12s %-12s %-14s %-12s\n",
@@ -464,7 +421,6 @@ void run_cpu_analyzer(void)
                metrics[i].turnaround, metrics[i].response);
     }
 
-    // save_csv(metrics, quantum, count);
     if (save_csv(metrics, quantum, count)) {
         generate_plot_automatically();
     }

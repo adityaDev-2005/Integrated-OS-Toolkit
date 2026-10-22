@@ -1,0 +1,68 @@
+========== FILE ALLOCATION ==========
+Simulated disk: 10 blocks of 100 bytes (1000 bytes total), all blocks initially free
+Operations: 15
+Simulation only: no real filesystem is read or modified.
+---------- Contiguous allocation ----------
+[op 1] allocate file 1 (100 bytes): success, data blocks [0]
+[op 2] allocate file 2 (100 bytes): success, data blocks [1]
+[op 3] allocate file 3 (100 bytes): success, data blocks [2]
+[op 4] allocate file 4 (100 bytes): success, data blocks [3]
+[op 5] allocate file 5 (100 bytes): success, data blocks [4]
+[op 6] allocate file 6 (100 bytes): success, data blocks [5]
+[op 7] allocate file 7 (100 bytes): success, data blocks [6]
+[op 8] allocate file 8 (100 bytes): success, data blocks [7]
+[op 9] allocate file 9 (100 bytes): success, data blocks [8]
+[op 10] allocate file 10 (100 bytes): success, data blocks [9]
+[op 11] delete file 1: freed data blocks [0]
+[op 12] delete file 3: freed data blocks [2]
+[op 13] delete file 5: freed data blocks [4]
+[op 14] allocate file 11 (200 bytes): FAILED - no contiguous run of 2 blocks (3 free)
+[op 15] retrieve file 11: FAILED - file not allocated
+Block usage: used 7/10; used blocks: [1 3 5 6 7 8 9]; free blocks: [0 2 4]
+Summary: files active 7; allocations 10 ok / 1 failed; deletions 3 ok / 0 failed; retrievals 0 ok / 1 failed
+Space: requested 700 bytes, allocated 700 bytes, wasted 0 bytes; metadata blocks 0
+---------- Linked allocation ----------
+[op 1] allocate file 1 (100 bytes): success, data blocks [0 1]
+[op 2] allocate file 2 (100 bytes): success, data blocks [2 3]
+[op 3] allocate file 3 (100 bytes): success, data blocks [4 5]
+[op 4] allocate file 4 (100 bytes): success, data blocks [6 7]
+[op 5] allocate file 5 (100 bytes): success, data blocks [8 9]
+[op 6] allocate file 6 (100 bytes): FAILED - not enough free blocks (needs 2, 0 free)
+[op 7] allocate file 7 (100 bytes): FAILED - not enough free blocks (needs 2, 0 free)
+[op 8] allocate file 8 (100 bytes): FAILED - not enough free blocks (needs 2, 0 free)
+[op 9] allocate file 9 (100 bytes): FAILED - not enough free blocks (needs 2, 0 free)
+[op 10] allocate file 10 (100 bytes): FAILED - not enough free blocks (needs 2, 0 free)
+[op 11] delete file 1: freed data blocks [0 1]
+[op 12] delete file 3: freed data blocks [4 5]
+[op 13] delete file 5: freed data blocks [8 9]
+[op 14] allocate file 11 (200 bytes): success, data blocks [0 1 4]
+[op 15] retrieve file 11: size 200 bytes, data blocks [0 1 4]
+Block usage: used 7/10; used blocks: [0 1 2 3 4 6 7]; free blocks: [5 8 9]
+Summary: files active 3; allocations 6 ok / 5 failed; deletions 3 ok / 0 failed; retrievals 1 ok / 0 failed
+Space: requested 400 bytes, allocated 700 bytes, wasted 300 bytes; metadata blocks 0
+---------- Indexed allocation ----------
+[op 1] allocate file 1 (100 bytes): success, index block 0, data blocks [1]
+[op 2] allocate file 2 (100 bytes): success, index block 2, data blocks [3]
+[op 3] allocate file 3 (100 bytes): success, index block 4, data blocks [5]
+[op 4] allocate file 4 (100 bytes): success, index block 6, data blocks [7]
+[op 5] allocate file 5 (100 bytes): success, index block 8, data blocks [9]
+[op 6] allocate file 6 (100 bytes): FAILED - not enough free blocks (needs 2, 0 free)
+[op 7] allocate file 7 (100 bytes): FAILED - not enough free blocks (needs 2, 0 free)
+[op 8] allocate file 8 (100 bytes): FAILED - not enough free blocks (needs 2, 0 free)
+[op 9] allocate file 9 (100 bytes): FAILED - not enough free blocks (needs 2, 0 free)
+[op 10] allocate file 10 (100 bytes): FAILED - not enough free blocks (needs 2, 0 free)
+[op 11] delete file 1: freed index block 0, data blocks [1]
+[op 12] delete file 3: freed index block 4, data blocks [5]
+[op 13] delete file 5: freed index block 8, data blocks [9]
+[op 14] allocate file 11 (200 bytes): success, index block 0, data blocks [1 4]
+[op 15] retrieve file 11: size 200 bytes, index block 0, data blocks [1 4]
+Block usage: used 7/10; used blocks: [0 1 2 3 4 6 7]; free blocks: [5 8 9]
+Summary: files active 3; allocations 6 ok / 5 failed; deletions 3 ok / 0 failed; retrievals 1 ok / 0 failed
+Space: requested 400 bytes, allocated 700 bytes, wasted 300 bytes; metadata blocks 3
+Notes:
+  File size is in bytes; blocks needed = ceil(size / usable bytes per block).
+  Contiguous and indexed data blocks hold 100 bytes each.
+  Linked blocks reserve 4 bytes for the next pointer, so 96 bytes per block are usable.
+  Indexed files use one index block holding 25 pointers (4 bytes each); a file needing more data blocks is rejected.
+  Wasted space = allocated block bytes - requested bytes, so it includes last-block slack,
+  link-pointer slots and index blocks.

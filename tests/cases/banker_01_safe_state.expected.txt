@@ -1,0 +1,10 @@
+========== DEADLOCK AVOIDANCE ==========
+Banker's algorithm with 5 processes and 3 resource types.
+Need matrix (Maximum - Allocation):
+P1    7    4    3
+Available vector: (3 3 2)
+  step 1: P2 can finish (need (1 2 2) <= work (3 3 2)); release (2 0 0) -> work (5 3 2)
+  step 5: P5 can finish (need (4 3 1) <= work (10 5 5)); release (0 0 2) -> work (10 5 7)
+[banker] state: SAFE
+[banker] safe sequence: P2 -> P4 -> P1 -> P3 -> P5
+[banker] all 5 processes can finish in the reported order

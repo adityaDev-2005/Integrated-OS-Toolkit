@@ -1,0 +1,4 @@
+algorithm,allocated_requests,failed_requests,internal_fragmentation,largest_free_block,block_count,request_count
+First Fit,3,1,0,300,5,4
+Best Fit,4,0,0,174,5,4
+Worst Fit,3,1,0,300,5,4

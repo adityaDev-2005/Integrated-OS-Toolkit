@@ -1,0 +1,6 @@
+Need matrix (Maximum - Allocation):
+Available vector: (1 1)
+  step 4: P4 can finish (need (1 1) <= work (4 2)); release (0 0) -> work (4 2)
+[banker] state: SAFE
+[banker] safe sequence: P1 -> P2 -> P3 -> P4
+[banker] all 4 processes can finish in the reported order

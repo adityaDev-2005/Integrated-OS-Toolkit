@@ -1,0 +1,53 @@
+========== FILE ALLOCATION ==========
+Simulated disk: 6 blocks of 64 bytes (384 bytes total), all blocks initially free
+Operations: 10
+Simulation only: no real filesystem is read or modified.
+---------- Contiguous allocation ----------
+[op 1] allocate file 1 (64 bytes): success, data blocks [0]
+[op 2] allocate file 2 (64 bytes): success, data blocks [1]
+[op 3] retrieve file 1: size 64 bytes, data blocks [0]
+[op 4] delete file 1: freed data blocks [0]
+[op 5] allocate file 3 (64 bytes): success, data blocks [0]
+[op 6] retrieve file 3: size 64 bytes, data blocks [0]
+[op 7] retrieve file 2: size 64 bytes, data blocks [1]
+[op 8] delete file 2: freed data blocks [1]
+[op 9] allocate file 4 (64 bytes): success, data blocks [1]
+[op 10] retrieve file 4: size 64 bytes, data blocks [1]
+Block usage: used 2/6; used blocks: [0 1]; free blocks: [2 3 4 5]
+Summary: files active 2; allocations 4 ok / 0 failed; deletions 2 ok / 0 failed; retrievals 4 ok / 0 failed
+Space: requested 128 bytes, allocated 128 bytes, wasted 0 bytes; metadata blocks 0
+---------- Linked allocation ----------
+[op 1] allocate file 1 (64 bytes): success, data blocks [0 1]
+[op 2] allocate file 2 (64 bytes): success, data blocks [2 3]
+[op 3] retrieve file 1: size 64 bytes, data blocks [0 1]
+[op 4] delete file 1: freed data blocks [0 1]
+[op 5] allocate file 3 (64 bytes): success, data blocks [0 1]
+[op 6] retrieve file 3: size 64 bytes, data blocks [0 1]
+[op 7] retrieve file 2: size 64 bytes, data blocks [2 3]
+[op 8] delete file 2: freed data blocks [2 3]
+[op 9] allocate file 4 (64 bytes): success, data blocks [2 3]
+[op 10] retrieve file 4: size 64 bytes, data blocks [2 3]
+Block usage: used 4/6; used blocks: [0 1 2 3]; free blocks: [4 5]
+Summary: files active 2; allocations 4 ok / 0 failed; deletions 2 ok / 0 failed; retrievals 4 ok / 0 failed
+Space: requested 128 bytes, allocated 256 bytes, wasted 128 bytes; metadata blocks 0
+---------- Indexed allocation ----------
+[op 1] allocate file 1 (64 bytes): success, index block 0, data blocks [1]
+[op 2] allocate file 2 (64 bytes): success, index block 2, data blocks [3]
+[op 3] retrieve file 1: size 64 bytes, index block 0, data blocks [1]
+[op 4] delete file 1: freed index block 0, data blocks [1]
+[op 5] allocate file 3 (64 bytes): success, index block 0, data blocks [1]
+[op 6] retrieve file 3: size 64 bytes, index block 0, data blocks [1]
+[op 7] retrieve file 2: size 64 bytes, index block 2, data blocks [3]
+[op 8] delete file 2: freed index block 2, data blocks [3]
+[op 9] allocate file 4 (64 bytes): success, index block 2, data blocks [3]
+[op 10] retrieve file 4: size 64 bytes, index block 2, data blocks [3]
+Block usage: used 4/6; used blocks: [0 1 2 3]; free blocks: [4 5]
+Summary: files active 2; allocations 4 ok / 0 failed; deletions 2 ok / 0 failed; retrievals 4 ok / 0 failed
+Space: requested 128 bytes, allocated 256 bytes, wasted 128 bytes; metadata blocks 2
+Notes:
+  File size is in bytes; blocks needed = ceil(size / usable bytes per block).
+  Contiguous and indexed data blocks hold 64 bytes each.
+  Linked blocks reserve 4 bytes for the next pointer, so 60 bytes per block are usable.
+  Indexed files use one index block holding 16 pointers (4 bytes each); a file needing more data blocks is rejected.
+  Wasted space = allocated block bytes - requested bytes, so it includes last-block slack,
+  link-pointer slots and index blocks.

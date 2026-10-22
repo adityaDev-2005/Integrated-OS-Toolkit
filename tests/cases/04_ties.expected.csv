@@ -1,0 +1,5 @@
+algorithm,avg_waiting_time,avg_turnaround_time,avg_response_time,quantum,process_count
+FCFS,2.50,7.50,2.50,2,2
+SJF,2.50,7.50,2.50,2,2
+Priority,2.50,7.50,2.50,2,2
+Round Robin,4.50,9.50,1.00,2,2
